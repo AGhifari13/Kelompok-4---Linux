@@ -43,6 +43,9 @@ Tipe JSON di MySQL bersifat native, sedangkan di MariaDB merupakan alias berbasi
 
 ## Keamanan
 
+<img width="895" height="571" alt="image" src="https://github.com/user-attachments/assets/d36e1ea5-b768-4a4c-8ed2-59efea8a2d39" />
+
+
 Tidak ada password, kredensial database, atau data pribadi nyata pada repository ini. Seluruh data pada script merupakan data contoh.
 
 ## Repository
