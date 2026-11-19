@@ -1,0 +1,4 @@
+ACL SETUSER report_user reset on >PasswordReport123 ~route:* ~trip:* -@all +zrangebyscore +hgetall +hget +hmget
+ACL SETUSER operator_user reset on >PasswordOperator123 ~route:* ~trip:* -@all +zrangebyscore +hgetall +hget +hmget +hset +zadd +zrem +del
+ACL GETUSER report_user
+ACL LIST

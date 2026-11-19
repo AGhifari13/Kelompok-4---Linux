@@ -1,0 +1,13 @@
+FLUSHDB
+HSET route:12 route_id 12 route_name "Koridor Pusat–Terminal"
+HSET route:15 route_id 15 route_name "Koridor Kampus–Stasiun"
+HSET route:18 route_id 18 route_name "Koridor Pasar–Kota"
+HSET trip:T001 trip_id T001 route_id 12 started_at "2026-11-02 07:10" status completed
+HSET trip:T002 trip_id T002 route_id 15 started_at "2026-11-02 07:25" status completed
+HSET trip:T003 trip_id T003 route_id 12 started_at "2026-11-03 08:05" status delayed
+HSET trip:T004 trip_id T004 route_id 18 started_at "2026-10-29 06:50" status completed
+HSET trip:T005 trip_id T005 route_id 12 started_at "2026-11-05 17:20" status completed
+HSET trip:T006 trip_id T006 route_id 15 started_at "2026-11-06 09:15" status cancelled
+ZADD route:12:trips 1793603400 T001 1793693100 T003 1793899200 T005
+ZADD route:15:trips 1793604300 T002 1793956500 T006
+ZADD route:18:trips 1793256600 T004

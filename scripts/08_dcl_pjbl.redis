@@ -1,0 +1,2 @@
+ACL SETUSER petani_user reset on >PasswordPetani123 %R~station:* %R~reading:* -@all +zrangebyscore +zrevrangebyscore +hget +hmget +hgetall
+ACL SETUSER operator_stasiun reset on >PasswordOperator456 ~station:* ~reading:* -@all +hset +zadd +hget +hmget +zrangebyscore +expire
