@@ -1,1 +1,8 @@
-
+ACL SETUSER report_user on >PASSWORD_PLACEHOLDER ~route:* ~trip:* -@all +zrangebyscore +hgetall +hget +hmget
+ACL SETUSER operator_user on >PASSWORD_PLACEHOLDER ~route:* ~trip:* -@all +zrangebyscore +hgetall +hget +hmget +hset +zadd +zrem +del
+ACL GETUSER report_user
+ACL LIST
+# REVOKE
+ACL SETUSER operator_user -del
+ACL SETUSER report_user -zrangebyscore -hgetall -hget -hmget
+ACL GETUSER report_user
