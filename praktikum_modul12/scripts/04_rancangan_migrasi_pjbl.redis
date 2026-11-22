@@ -1,1 +1,5 @@
-
+HSET station:S01 station_id S01 station_name "Stasiun Lahan Sawah Utara" village "Desa Sukamaju"
+HSET reading:R001 reading_id R001 station_id S01 recorded_at "2026-11-02 06:00" temp_c 27.5 humidity 82 rain_mm 0
+HSET reading:R002 reading_id R002 station_id S01 recorded_at "2026-11-03 06:00" temp_c 26.1 humidity 90 rain_mm 12.4
+HSET reading:R003 reading_id R003 station_id S01 recorded_at "2026-10-30 06:00" temp_c 28.0 humidity 78 rain_mm 0
+ZADD station:S01:readings 1793599200 R001 1793685600 R002 1793340000 R003
