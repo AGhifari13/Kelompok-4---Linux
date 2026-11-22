@@ -1,1 +1,6 @@
-
+ZRANGEBYSCORE route:12:trips 1793491200 +inf
+HGET route:12 route_name
+HGET trip:T001 started_at
+HGET trip:T003 started_at
+HGET trip:T005 started_at
+HGETALL trip:T001
