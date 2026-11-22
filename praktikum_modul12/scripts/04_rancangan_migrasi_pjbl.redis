@@ -3,3 +3,135 @@ HSET reading:R001 reading_id R001 station_id S01 recorded_at "2026-11-02 06:00" 
 HSET reading:R002 reading_id R002 station_id S01 recorded_at "2026-11-03 06:00" temp_c 26.1 humidity 90 rain_mm 12.4
 HSET reading:R003 reading_id R003 station_id S01 recorded_at "2026-10-30 06:00" temp_c 28.0 humidity 78 rain_mm 0
 ZADD station:S01:readings 1793599200 R001 1793685600 R002 1793340000 R003
+
+# ==========================================
+# PjBL SISTEM INFORMASI CUACA BAGI PETANI
+# MIGRASI DATA STASIUN DAN PEMBACAAN CUACA
+# ==========================================
+
+# DATA WILAYAH
+HSET wilayah:1 nama_wilayah "Kecamatan Kartoharjo" kabupaten "Kota Madiun" latitude -7.629 longitude 111.523
+HSET wilayah:2 nama_wilayah "Kecamatan Maospati" kabupaten "Magetan" latitude -7.620 longitude 111.350
+HSET wilayah:3 nama_wilayah "Kecamatan Geneng" kabupaten "Ngawi" latitude -7.420 longitude 111.450
+
+# DATA STASIUN
+HSET station:S01 station_id S01 nama_stasiun "Stasiun Kartoharjo" id_wilayah 1
+HSET station:S02 station_id S02 nama_stasiun "Stasiun Maospati" id_wilayah 2
+HSET station:S03 station_id S03 nama_stasiun "Stasiun Geneng" id_wilayah 3
+
+# DATA PEMBACAAN CUACA
+HSET reading:R001 reading_id R001 station_id S01 suhu 27.5 kelembapan 82 curah_hujan 0 waktu "2026-11-02 06:00:00"
+HSET reading:R002 reading_id R002 station_id S01 suhu 26.1 kelembapan 90 curah_hujan 12.4 waktu "2026-11-03 06:00:00"
+HSET reading:R003 reading_id R003 station_id S02 suhu 28.0 kelembapan 78 curah_hujan 0 waktu "2026-11-03 07:00:00"
+HSET reading:R004 reading_id R004 station_id S03 suhu 25.5 kelembapan 88 curah_hujan 8.5 waktu "2026-11-04 06:00:00"
+
+# INDEKS PEMBACAAN BERDASARKAN WAKTU
+ZADD station:S01:readings 1793599200 R001 1793685600 R002
+ZADD station:S02:readings 1793689200 R003
+ZADD station:S03:readings 1793772000 R004
+
+# VERIFIKASI
+HGETALL wilayah:1
+HGETALL station:S01
+HGETALL reading:R001
+ZRANGE station:S01:readings 0 -1 WITHSCORES
+
+-- ==========================================
+-- PjBL SISTEM INFORMASI CUACA BAGI PETANI
+-- LUA SCRIPT JOIN DATA CUACA DAN STASIUN
+-- ==========================================
+
+-- KEYS[1] = indeks pembacaan stasiun
+-- ARGV[1] = batas waktu awal
+-- ARGV[2] = key data stasiun
+
+local readings = redis.call(
+    "ZRANGEBYSCORE",
+    KEYS[1],
+    ARGV[1],
+    "+inf"
+)
+
+local station_name = redis.call(
+    "HGET",
+    ARGV[2],
+    "nama_stasiun"
+)
+
+local result = {}
+
+for _, id in ipairs(readings) do
+
+    local data = redis.call(
+        "HGETALL",
+        "reading:" .. id
+    )
+
+    local record = {}
+
+    for i = 1, #data, 2 do
+        record[data[i]] = data[i + 1]
+    end
+
+    table.insert(
+        result,
+        {
+            reading_id = id,
+            nama_stasiun = station_name or "-",
+            suhu = record["suhu"] or "-",
+            kelembapan = record["kelembapan"] or "-",
+            curah_hujan = record["curah_hujan"] or "-",
+            waktu = record["waktu"] or "-"
+        }
+    )
+
+end
+return cjson.encode(result)
+
+-----------------------------
+# ACL USER PETANI
+# HAK AKSES: MEMBACA DATA
+--------------------------------
+ACL SETUSER petani_user reset on >PasswordPetani123 %R~station:* %R~reading:* -@all +zrangebyscore +zrevrangebyscore +hget +hmget +hgetall
+
+# MELIHAT INFORMASI USER
+ACL GETUSER petani_user
+
+-----------------------------------------------
+# ACL USER OPERATOR STASIUN
+# HAK AKSES: MEMBACA DAN MEMPERBARUI DATA
+-----------------------------------------------
+ACL SETUSER operator_stasiun reset on >PasswordOperator456 ~station:* ~reading:* -@all +hset +zadd +hget +hmget +hgetall +zrangebyscore +expire
+
+# MELIHAT INFORMASI USER
+ACL GETUSER operator_stasiun
+
+# PETANI MEMBACA DATA STASIUN
+HGETALL station:S01
+
+# PETANI MEMBACA DATA CUACA
+HGETALL reading:R001
+
+# PETANI MELIHAT INDEKS PEMBACAAN
+ZRANGE station:S01:readings 0 -1
+
+-----------------------------
+# PENGUJIAN AKUN OPERATOR
+-----------------------------
+# OPERATOR MEMBACA DATA
+HGETALL station:S01
+
+# OPERATOR MEMPERBARUI DATA
+HSET reading:R001 suhu 29.5
+
+# OPERATOR MENAMBAHKAN INDEKS
+ZADD station:S01:readings 1793865600 R005
+
+# MEMERIKSA HASIL PERUBAHAN
+HGETALL reading:R001
+
+---------------------------
+# VERIFIKASI ACL
+----------------------------
+ACL GETUSER petani_user
+ACL GETUSER operator_stasiun
